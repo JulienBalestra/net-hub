@@ -2,9 +2,10 @@ package client
 
 import (
 	"context"
-	"github.com/jpillora/backoff"
 	"net"
 	"time"
+
+	"github.com/jpillora/backoff"
 
 	"github.com/JulienBalestra/tcp-hub/pkg/conn"
 	"go.uber.org/zap"
@@ -46,7 +47,7 @@ func (c *Client) Run(ctx context.Context) error {
 			return nil
 
 		default:
-			newConn, err := net.Dial("tcp4", c.conf.ServerAddress)
+			newConn, err := net.DialTimeout("tcp4", c.conf.ServerAddress, time.Minute*5)
 			if err != nil {
 				sleepDuration := c.backoff.Duration()
 				zap.L().Error("failed to dial", zap.Error(err), zap.String("backoff", sleepDuration.String()))

@@ -5,7 +5,7 @@ lint:
 	golint -set_exit_status $(go list ./...)
 
 import:
-	goimports -w pkg/ cmd/ main/
+	goimports -w pkg/ cmd/ server/ client/
 
 ineffassign:
 	ineffassign ./
@@ -22,6 +22,3 @@ vet:
 verify-fmt: fmt .pristine
 
 verify-import: import .pristine
-
-generate:
-	@go run pkg/mac/main/main.go

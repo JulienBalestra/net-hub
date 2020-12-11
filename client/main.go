@@ -2,13 +2,14 @@ package main
 
 import (
 	"context"
+	"os"
+	"sync"
+	"time"
+
 	"github.com/JulienBalestra/tcp-hub/cmd/signals"
 	"github.com/JulienBalestra/tcp-hub/pkg/client"
 	"github.com/JulienBalestra/tcp-hub/pkg/pipe"
 	"go.uber.org/zap"
-	"os"
-	"sync"
-	"time"
 )
 
 func main() {
@@ -33,19 +34,13 @@ func main() {
 	errorsChan := make(chan error)
 	defer close(errorsChan)
 
-	hubClient := client.NewClient(&client.Config{
-		ServerAddress: "127.0.0.1:9001",
-		BackOffMax:    time.Minute * 10,
-	})
-
 	applicationClient := client.NewClient(&client.Config{
 		ServerAddress: "127.0.0.1:80",
 		BackOffMax:    time.Second,
 	})
-
 	waitGroup.Add(1)
 	go func() {
-		err := hubClient.Run(ctx)
+		err := applicationClient.Run(ctx)
 		if err != nil {
 			errorsChan <- err
 		}
@@ -53,9 +48,14 @@ func main() {
 		cancel()
 	}()
 
+	// TODO fixme
+	hubClient := client.NewClient(&client.Config{
+		ServerAddress: "127.0.0.1:9001",
+		BackOffMax:    time.Minute * 5,
+	})
 	waitGroup.Add(1)
 	go func() {
-		err := applicationClient.Run(ctx)
+		err := hubClient.Run(ctx)
 		if err != nil {
 			errorsChan <- err
 		}
@@ -79,8 +79,8 @@ func main() {
 	select {
 	case <-ctx.Done():
 	case err := <-errorsChan:
-		zap.L().Error("failed to run listeners", zap.Error(err))
+		zap.L().Error("failed to run clients", zap.Error(err))
 	}
 	cancel()
-	//waitGroup.Wait()
+	waitGroup.Wait()
 }

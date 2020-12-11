@@ -11,11 +11,6 @@ import (
 	"go.uber.org/zap"
 )
 
-/*
-	Hub: client registered
-
-*/
-
 func main() {
 	zapConfig := zap.NewProductionConfig()
 	logger, err := zapConfig.Build()
@@ -41,7 +36,7 @@ func main() {
 	hubListener := listener.New(&listener.Config{
 		ListenAddress: ":9001",
 	})
-	clientListener := listener.New(&listener.Config{
+	externalClientListener := listener.New(&listener.Config{
 		ListenAddress: ":9000",
 	})
 
@@ -57,7 +52,7 @@ func main() {
 
 	waitGroup.Add(1)
 	go func() {
-		err := clientListener.Run(ctx)
+		err := externalClientListener.Run(ctx)
 		if err != nil {
 			errorsChan <- err
 		}
@@ -70,7 +65,7 @@ func main() {
 	})
 	waitGroup.Add(1)
 	go func() {
-		err := p.Attach(ctx, hubListener.NewConnCh, clientListener.NewConnCh)
+		err := p.Attach(ctx, hubListener.NewConnCh, externalClientListener.NewConnCh)
 		if err != nil {
 			errorsChan <- err
 		}
@@ -84,5 +79,6 @@ func main() {
 		zap.L().Error("failed to run listeners", zap.Error(err))
 	}
 	cancel()
+	// TODO fixme
 	//waitGroup.Wait()
 }

@@ -47,11 +47,11 @@ func (h *Hub) Run(ctx context.Context) error {
 				continue
 			}
 			zctx.With(
+				zap.String("localAddr", newConn.LocalAddr().String()),
 				zap.String("remoteAddr", newConn.RemoteAddr().String()),
 			).Info("new connection")
 			nc := conn.NewConn(ctx, newConn)
 			h.NewConnCh <- nc
-			<-nc.Context.Done()
 		}
 	}
 }
