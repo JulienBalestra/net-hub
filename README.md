@@ -1,31 +1,14 @@
+# net-hub
 
+tcp-hub exposes a tcp port outside of the network without any NAT.
 
+The tcp-hub client connects to:
+* the application tcp server to expose
+* the tcp-hub server
 
-Static IP / Server for clients
-```
-1.1.1.1: WAN IP
-    NAT 9000 -> 10.0.0.1:9000
-    NAT 9001 -> 10.0.0.1:9001
-10.0.0.1: rpi4
-```
+The tcp-hub server has two listeners:
+* hub server waiting for a tcp-hub client
+* external client to reach the application over the established tcp connection
 
-socat command:
-```bash
-# 192.168.1.1: rpi4
-socat -ddd TCP4-LISTEN:9001,reuseaddr,fork,ignoreeof,max-children=16 TCP4-LISTEN:9000,reuseaddr,fork,ignoreeof,max-children=16 
-```
-docs: http://www.dest-unreach.org/socat/doc/socat.html#ADDRESS_TCP_LISTEN
-
-Isolated site / Bascom server to expose
-```
-192.168.1.1: 4G router
-192.168.1.2: bascom
-192.168.1.3: rpi4 
-```
-
-socat command:
-```bash
-# 192.168.1.3: rpi4
-socat -ddd TCP4:1.1.1.1:9001,reuseaddr,end-close TCP4:192.168.1.2:9000,reuseaddr,end-close
-```
-
+Limitations:
+* a single tcp connection can be forwarded
